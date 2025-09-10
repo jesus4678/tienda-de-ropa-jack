@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+    <!-- Clase Cliente -->
+    <rect x="50" y="50" width="150" height="120" fill="#f1f1f1" stroke="black" />
+    <text x="75" y="80" font-size="14">Cliente</text>
+    <text x="75" y="100" font-size="12">- id: int</text>
+    <text x="75" y="120" font-size="12">- nombre: string</text>
+    <text x="75" y="140" font-size="12">- email: string</text>
+    <text x="75" y="160" font-size="12">+ registrarse()</text>
+    <text x="75" y="180" font-size="12">+ iniciarSesion()</text>
+  
+    <!-- Clase Producto -->
+    <rect x="250" y="50" width="150" height="140" fill="#f1f1f1" stroke="black" />
+    <text x="275" y="80" font-size="14">Producto</text>
+    <text x="275" y="100" font-size="12">- id: int</text>
+    <text x="275" y="120" font-size="12">- nombre: string</text>
+    <text x="275" y="140" font-size="12">- descripcion: string</text>
+    <text x="275" y="160" font-size="12">- precio: decimal</text>
+    <text x="275" y="180" font-size="12">+ agregarAlCarrito()</text>
+  
+    <!-- Clase Carrito -->
+    <rect x="450" y="50" width="150" height="160" fill="#f1f1f1" stroke="black" />
+    <text x="475" y="80" font-size="14">Carrito</text>
+    <text x="475" y="100" font-size="12">- id: int</text>
+    <text x="475" y="120" font-size="12">- cliente: Cliente</text>
+    <text x="475" y="140" font-size="12">- productos: List&lt;Producto&gt;</text>
+    <text x="475" y="160" font-size="12">- total: decimal</text>
+    <text x="475" y="180" font-size="12">+ agregarProducto(Producto)</text>
+    <text x="475" y="200" font-size="12">+ quitarProducto(Producto)</text>
+    <text x="475" y="220" font-size="12">+ calcularTotal()</text>
+  
+    <!-- Clase Pedido -->
+    <rect x="50" y="200" width="150" height="160" fill="#f1f1f1" stroke="black" />
+    <text x="75" y="230" font-size="14">Pedido</text>
+    <text x="75" y="250" font-size="12">- id: int</text>
+    <text x="75" y="270" font-size="12">- cliente: Cliente</text>
+    <text x="75" y="290" font-size="12">- carrito: Carrito</text>
+    <text x="75" y="310" font-size="12">- estado: string</text>
+    <text x="75" y="330" font-size="12">- fechaEntrega: DateTime</text>
+    <text x="75" y="350" font-size="12">+ realizarPedido()</text>
+    <text x="75" y="370" font-size="12">+ actualizarEstado()</text>
+  
+    <!-- Clase Factura -->
+    <rect x="250" y="220" width="150" height="160" fill="#f1f1f1" stroke="black" />
+    <text x="275" y="250" font-size="14">Factura</text>
+    <text x="275" y="270" font-size="12">- id: int</text>
+    <text x="275" y="290" font-size="12">- pedido: Pedido</text>
+    <text x="275" y="310" font-size="12">- fecha: DateTime</text>
+    <text x="275" y="330" font-size="12">- total: decimal</text>
+    <text x="275" y="350" font-size="12">- metodoPago: string</text>
+    <text x="275" y="370" font-size="12">+ generarFactura()</text>
+  
+    <!-- Clase Tienda -->
+    <rect x="450" y="220" width="150" height="160" fill="#f1f1f1" stroke="black" />
+    <text x="475" y="250" font-size="14">Tienda</text>
+    <text x="475" y="270" font-size="12">- id: int</text>
+    <text x="475" y="290" font-size="12">- nombre: string</text>
+    <text x="475" y="310" font-size="12">- productos: List&lt;Producto&gt;</text>
+    <text x="475" y="330" font-size="12">- clientes: List&lt;Cliente&gt;</text>
+    <text x="475" y="350" font-size="12">+ agregarProducto(Producto)</text>
+    <text x="475" y="370" font-size="12">+ registrarCliente(Cliente)</text>
+  </svg>

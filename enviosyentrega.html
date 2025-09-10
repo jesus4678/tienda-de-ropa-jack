@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Envío y Entrega</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-radius: 0 0 10px 10px;
+        }
+
+        header h1 {
+            text-align: center;
+            font-size: 2rem;
+        }
+
+        .tracking-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .tracking-input {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .tracking-input input {
+            flex: 1;
+            padding: 0.8rem;
+            border: 2px solid #e1e8f0;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .tracking-input button {
+            padding: 0.8rem 1.5rem;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .tracking-input button:hover {
+            background-color: #45a049;
+        }
+
+        .tracking-status {
+            margin-top: 2rem;
+        }
+
+        .status-timeline {
+            position: relative;
+            padding-left: 50px;
+        }
+
+        .timeline-point {
+            position: relative;
+            padding: 1rem 0;
+            padding-left: 2rem;
+        }
+
+        .timeline-point::before {
+            content: '';
+            position: absolute;
+            left: -30px;
+            top: 50%;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border: 3px solid #4CAF50;
+            border-radius: 50%;
+            transform: translateY(-50%);
+            z-index: 2;
+        }
+
+        .timeline-point::after {
+            content: '';
+            position: absolute;
+            left: -21px;
+            top: 0;
+            width: 2px;
+            height: 100%;
+            background: #4CAF50;
+            z-index: 1;
+        }
+
+        .timeline-point:first-child::after {
+            top: 50%;
+            height: 50%;
+        }
+
+        .timeline-point:last-child::after {
+            height: 50%;
+        }
+
+        .timeline-content {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .timeline-content h3 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-content p {
+            color: #7f8c8d;
+            margin: 0;
+        }
+
+        .delivery-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #e1e8f0;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .delivery-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .delivery-option {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .delivery-option:hover {
+            transform: translateY(-5px);
+        }
+
+        .delivery-option.selected {
+            border: 2px solid #4CAF50;
+        }
+
+        .delivery-option h3 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .delivery-option p {
+            color: #7f8c8d;
+        }
+
+        .delivery-option .price {
+            font-size: 1.5rem;
+            color: #4CAF50;
+            font-weight: bold;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #45a049;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        @media (max-width: 768px) {
+            .delivery-options {
+                grid-template-columns: 1fr;
+            }
+
+            .tracking-input {
+                flex-direction: column;
+            }
+
+            .tracking-input button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Sistema de Envío y Entrega</h1>
+    </header>
+
+    <div class="container">
+        <div class="tracking-section">
+            <h2>Seguimiento de Envío</h2>
+            <div class="tracking-input">
+                <input type="text" id="tracking-number" placeholder="Ingrese número de seguimiento">
+                <button onclick="buscarEnvio()">Rastrear</button>
+            </div>
+            <div id="tracking-result" class="tracking-status" style="display: none;">
+                <div class="status-timeline">
+                    <div class="timeline-point">
+                        <div class="timeline-content">
+                            <h3>Pedido Confirmado</h3>
+                            <p>Tu pedido ha sido confirmado y está siendo procesado</p>
+                        </div>
+                    </div>
+                    <div class="timeline-point">
+                        <div class="timeline-content">
+                            <h3>En Preparación</h3>
+                            <p>Tu pedido está siendo preparado para envío</p>
+                        </div>
+                    </div>
+                    <div class="timeline-point">
+                        <div class="timeline-content">
+                            <h3>En Tránsito</h3>
+                            <p>Tu pedido está en camino</p>
+                        </div>
+                    </div>
+                    <div class="timeline-point">
+                        <div class="timeline-content">
+                            <h3>Entregado</h3>
+                            <p>Tu pedido ha sido entregado</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="delivery-options">
+            <div class="delivery-option" onclick="seleccionarEnvio('estandar')">
+                <h3>Envío Estándar</h3>
+                <p>Entrega en 3-5 días hábiles</p>
+                <div class="price">$99.00</div>
+            </div>
+            <div class="delivery-option" onclick="seleccionarEnvio('express')">
+                <h3>Envío Express</h3>
+                <p>Entrega en 1-2 días hábiles</p>
+                <div class="price">$199.00</div>
+            </div>
+            <div class="delivery-option" onclick="seleccionarEnvio('mismo-dia')">
+                <h3>Entrega Mismo Día</h3>
+                <p>Entrega garantizada hoy</p>
+                <div class="price">$299.00</div>
+            </div>
+        </div>
+
+        <div class="delivery-form">
+            <h2>Información de Entrega</h2>
+            <div id="alert" class="alert"></div>
+            <form id="delivery-form" onsubmit="procesarEnvio(event)">
+                <div class="form-group">
+                    <label>Nombre Completo:</label>
+                    <input type="text" name="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Dirección:</label>
+                    <input type="text" name="direccion" required>
+                </div>
+                <div class="form-group">
+                    <label>Ciudad:</label>
+                    <input type="text" name="ciudad" required>
+                </div>
+                <div class="form-group">
+                    <label>Código Postal:</label>
+                    <input type="text" name="codigo_postal" required>
+                </div>
+                <div class="form-group">
+                    <label>Teléfono:</label>
+                    <input type="tel" name="telefono" required>
+                </div>
+                <div class="form-group">
+                    <label>Instrucciones Especiales:</label>
+                    <textarea name="instrucciones" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Confirmar Envío</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let tipoEnvioSeleccionado = null;
+
+        function buscarEnvio() {
+            const trackingNumber = document.getElementById('tracking-number').value;
+            if (trackingNumber.trim() === '') {
+                mostrarAlerta('Por favor ingrese un número de seguimiento', 'error');
+                return;
+            }
+            
+            document.getElementById('tracking-result').style.display = 'block';
+            // Aquí se simularía la búsqueda real del envío
+            mostrarAlerta('Rastreo exitoso', 'success');
+        }
+
+        function seleccionarEnvio(tipo) {
+            tipoEnvioSeleccionado = tipo;
+            document.querySelectorAll('.delivery-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+        }
+
+        function procesarEnvio(event) {
+            event.preventDefault();
+            
+            if (!tipoEnvioSeleccionado) {
+                mostrarAlerta('Por favor seleccione un método de envío', 'error');
+                return;
+            }
+
+            const formData = new FormData(event.target);
+            const datos = Object.fromEntries(formData.entries());
+            
+            // Aquí se procesaría el envío con los datos recopilados
+            console.log('Datos de envío:', datos);
+            console.log('Tipo de envío:', tipoEnvioSeleccionado);
+            
+            mostrarAlerta('¡Envío programado con éxito!', 'success');
+            event.target.reset();
+            tipoEnvioSeleccionado = null;
+            document.querySelectorAll('.delivery-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+        }
+
+        function mostrarAlerta(mensaje, tipo) {
+            const alert = document.getElementById('alert');
+            alert.textContent = mensaje;
+            alert.className = `alert alert-${tipo}`;
+            alert.style.display = 'block';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

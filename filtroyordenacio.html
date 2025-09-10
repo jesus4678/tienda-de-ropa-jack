@@ -1,0 +1,71 @@
+<aside class="filters-sidebar">
+    <div class="filter-group">
+        <h3>Filtrar por:</h3>
+        <div class="filter-section">
+            <h4>Precio</h4>
+            <div class="price-range">
+                <input type="range" min="0" max="1000" step="10" id="price-min">
+                <input type="range" min="0" max="1000" step="10" id="price-max">
+                <div class="price-inputs">
+                    <input type="number" id="min-value" placeholder="Min">
+                    <span>-</span>
+                    <input type="number" id="max-value" placeholder="Max">
+                </div>
+                <button class="apply-price">Aplicar</button>
+            </div>
+        </div>
+        
+        <div class="filter-section">
+            <h4>Talla</h4>
+            <div class="size-options">
+                <label><input type="checkbox" value="XS"> XS</label>
+                <label><input type="checkbox" value="S"> S</label>
+                <label><input type="checkbox" value="M"> M</label>
+                <label><input type="checkbox" value="L"> L</label>
+                <label><input type="checkbox" value="XL"> XL</label>
+                <label><input type="checkbox" value="XXL"> XXL</label>
+            </div>
+        </div>
+        
+        <div class="filter-section">
+            <h4>Color</h4>
+            <div class="color-options">
+                <label class="color-option">
+                    <input type="checkbox" value="negro">
+                    <span class="color-circle" style="background-color: #000;"></span>
+                    <span>Negro</span>
+                </label>
+                <label class="color-option">
+                    <input type="checkbox" value="blanco">
+                    <span class="color-circle" style="background-color: #fff;"></span>
+                    <span>Blanco</span>
+                </label>
+                <label class="color-option">
+                    <input type="checkbox" value="rojo">
+                    <span class="color-circle" style="background-color: #ff0000;"></span>
+                    <span>Rojo</span>
+                </label>
+                <!-- Más colores... -->
+            </div>
+        </div>
+        
+        <button class="apply-filters">Aplicar filtros</button>
+        <button class="clear-filters">Limpiar filtros</button>
+    </div>
+</aside>
+
+<div class="sorting-options">
+    <label for="sort-by">Ordenar por:</label>
+    <select id="sort-by">
+        <option value="relevance">Relevancia</option>
+        <option value="price-low">Precio: Menor a mayor</option>
+        <option value="price-high">Precio: Mayor a menor</option>
+        <option value="newest">Más recientes</option>
+        <option value="rating">Mejor valorados</option>
+    </select>
+    
+    <div class="view-options">
+        <button class="grid-view active"><i class="fas fa-th"></i></button>
+        <button class="list-view"><i class="fas fa-list"></i></button>
+    </div>
+</div>

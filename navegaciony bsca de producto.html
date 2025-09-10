@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tienda Narváez - Productos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+        }
+
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 1rem 0;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 0.5rem;
+            width: 50%;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 0.5rem;
+            border: none;
+            border-radius: 4px;
+        }
+
+        .search-bar button {
+            padding: 0.5rem 1rem;
+            background-color: #3498db;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+        }
+
+        nav {
+            background-color: #34495e;
+            padding: 1rem 0;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .nav-menu {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-menu ul {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            font-size: 1rem;
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 2rem;
+        }
+
+        .filters {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .filter-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-section h3 {
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+
+        .filter-option {
+            margin-bottom: 0.5rem;
+        }
+
+        .price-range {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .price-range input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .product-card {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 200px;
+            background-color: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .product-image img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+        }
+
+        .product-info {
+            padding: 1rem;
+        }
+
+        .product-title {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+
+        .product-price {
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .sort-options {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 1rem;
+        }
+
+        .sort-select {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-menu ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .search-bar {
+                width: 100%;
+                margin: 1rem 0;
+            }
+
+            .header-top {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-top">
+            <a href="#" class="logo">Tienda Narváez</a>
+            <div class="search-bar">
+                <input type="text" placeholder="Buscar productos...">
+                <button>Buscar</button>
+            </div>
+            <div class="cart-icon">
+                <a href="#" style="color: white;">🛒 Carrito (0)</a>
+            </div>
+        </div>
+    </header>
+
+    <nav>
+        <div class="nav-container">
+            <div class="nav-menu">
+                <ul>
+                    <li><a href="#">Inicio</a></li>
+                    <li><a href="#">Hombres</a></li>
+                    <li><a href="#">Mujeres</a></li>
+                    <li><a href="#">Niños</a></li>
+                    <li><a href="#">Ofertas</a></li>
+                    <li><a href="#">Nuevos Llegados</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-container">
+        <aside class="filters">
+            <div class="filter-section">
+                <h3>Categorías</h3>
+                <div class="filter-option">
+                    <input type="checkbox" id="camisetas">
+                    <label for="camisetas">Camisetas</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="pantalones">
+                    <label for="pantalones">Pantalones</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="vestidos">
+                    <label for="vestidos">Vestidos</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="zapatos">
+                    <label for="zapatos">Zapatos</label>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3>Rango de Precio</h3>
+                <div class="price-range">
+                    <input type="number" placeholder="Min">
+                    <input type="number" placeholder="Max">
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3>Tallas</h3>
+                <div class="filter-option">
+                    <input type="checkbox" id="xs">
+                    <label for="xs">XS</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="s">
+                    <label for="s">S</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="m">
+                    <label for="m">M</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="l">
+                    <label for="l">L</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="xl">
+                    <label for="xl">XL</label>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3>Color</h3>
+                <div class="filter-option">
+                    <input type="checkbox" id="negro">
+                    <label for="negro">Negro</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="blanco">
+                    <label for="blanco">Blanco</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="azul">
+                    <label for="azul">Azul</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="rojo">
+                    <label for="rojo">Rojo</label>
+                </div>
+            </div>
+        </aside>
+
+        <section class="products-section">
+            <div class="sort-options">
+                <select class="sort-select">
+                    <option value="">Ordenar por</option>
+                    <option value="price-low">Precio: Menor a Mayor</option>
+                    <option value="price-high">Precio: Mayor a Menor</option>
+                    <option value="newest">Más Nuevos</option>
+                    <option value="popular">Más Populares</option>
+                </select>
+            </div>
+
+            <div class="products-grid">
+                <!-- Producto 1 -->
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="camiseta casual1.jfif">
+                        <img src="/api/placeholder/200/200" alt="Camiseta Casual">
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">Camiseta Casual</h3>
+                        <p class="product-price">$29.99</p>
+                    </div>
+                </div>
+
+                <!-- Producto 2 -->
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="pantalon jean.jfif"
+                        <img src="/api/placeholder/200/200" alt="Pantalón Jeans">
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">Pantalón Jeans</h3>
+                        <p class="product-price">$49.99</p>
+                    </div>
+                </div>
+
+                <!-- Producto 3 -->
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="vestido floral.jfif">
+                        <img src="/api/placeholder/200/200" alt="Vestido Floral">
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">Vestido Floral</h3>
+                        <p class="product-price">$39.99</p>
+                    </div>
+                </div>
+
+                <!-- Producto 4 -->
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="zapato deportivo.jfif">
+                        <img src="/api/placeholder/200/200" alt="Zapatos Deportivos">
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">Zapatos Deportivos</h3>
+                        <p class="product-price">$79.99</p>
+                    </div>
+                </div>
+
+                <!-- Más productos... -->
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Funcionalidad de búsqueda
+        const searchButton = document.querySelector('.search-bar button');
+        const searchInput = document.querySelector('.search-bar input');
+
+        searchButton.addEventListener('click', function() {
+            const searchTerm = searchInput.value.trim();
+            if (searchTerm) {
+                alert(`Buscando: ${searchTerm}`);
+            }
+        });
+
+        // Funcionalidad de filtrado
+        const filterCheckboxes = document.querySelectorAll('.filter-option input[type="checkbox"]');
+        filterCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                // Aquí iría la lógica de filtrado
+                console.log(`Filtro ${this.id} ${this.checked ? 'activado' : 'desactivado'}`);
+            });
+        });
+
+        // Funcionalidad de ordenamiento
+        const sortSelect = document.querySelector('.sort-select');
+        sortSelect.addEventListener('change', function() {
+            // Aquí iría la lógica de ordenamiento
+            console.log(`Ordenando por: ${this.value}`);
+        });
+    </script>
+</body>
+</html>

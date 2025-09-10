@@ -1,0 +1,642 @@
+const express = require('express');
+const cors = require('cors');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+const JWT_SECRET = process.env.JWT_SECRET || 'narvaez-store-secret';
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Base de datos simulada (en producción usar MongoDB, PostgreSQL, etc.)
+let productos = [
+  {
+    id: 1,
+    nombre: 'Camisa Casual Hombre',
+    descripcion: 'Camisa de algodón 100% para uso casual',
+    precio: 45000,
+    categoria: 'camisas',
+    genero: 'hombre',
+    tallas: ['S', 'M', 'L', 'XL'],
+    colores: ['azul', 'blanco', 'negro'],
+    stock: 25,
+    imagen: 'https://example.com/camisa-casual.jpg',
+    fechaCreacion: new Date().toISOString()
+  },
+  {
+    id: 2,
+    nombre: 'Vestido Elegante Mujer',
+    descripcion: 'Vestido elegante para ocasiones especiales',
+    precio: 85000,
+    categoria: 'vestidos',
+    genero: 'mujer',
+    tallas: ['XS', 'S', 'M', 'L'],
+    colores: ['rojo', 'negro', 'azul marino'],
+    stock: 15,
+    imagen: 'https://example.com/vestido-elegante.jpg',
+    fechaCreacion: new Date().toISOString()
+  }
+];
+
+let usuarios = [
+  {
+    id: 1,
+    nombre: 'Admin',
+    email: 'admin@narvaez.com',
+    password: '$2a$10$example', // password: admin123
+    rol: 'admin',
+    fechaRegistro: new Date().toISOString()
+  }
+];
+
+let pedidos = [];
+let carrito = [];
+
+// Middleware de autenticación
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'Token de acceso requerido' });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: 'Token inválido' });
+    }
+    req.user = user;
+    next();
+  });
+};
+
+// Middleware para verificar rol de admin
+const requireAdmin = (req, res, next) => {
+  if (req.user.rol !== 'admin') {
+    return res.status(403).json({ error: 'Acceso denegado. Se requieren permisos de administrador' });
+  }
+  next();
+};
+
+// ======================
+// RUTAS DE AUTENTICACIÓN
+// ======================
+
+// Registro de usuario
+app.post('/api/auth/registro', async (req, res) => {
+  try {
+    const { nombre, email, password } = req.body;
+
+    // Validaciones
+    if (!nombre || !email || !password) {
+      return res.status(400).json({ error: 'Todos los campos son requeridos' });
+    }
+
+    // Verificar si el usuario ya existe
+    const usuarioExistente = usuarios.find(u => u.email === email);
+    if (usuarioExistente) {
+      return res.status(400).json({ error: 'El usuario ya existe' });
+    }
+
+    // Encriptar contraseña
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Crear nuevo usuario
+    const nuevoUsuario = {
+      id: usuarios.length + 1,
+      nombre,
+      email,
+      password: hashedPassword,
+      rol: 'cliente',
+      fechaRegistro: new Date().toISOString()
+    };
+
+    usuarios.push(nuevoUsuario);
+
+    // Generar token
+    const token = jwt.sign(
+      { id: nuevoUsuario.id, email: nuevoUsuario.email, rol: nuevoUsuario.rol },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.status(201).json({
+      mensaje: 'Usuario registrado exitosamente',
+      token,
+      usuario: {
+        id: nuevoUsuario.id,
+        nombre: nuevoUsuario.nombre,
+        email: nuevoUsuario.email,
+        rol: nuevoUsuario.rol
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Login
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Buscar usuario
+    const usuario = usuarios.find(u => u.email === email);
+    if (!usuario) {
+      return res.status(401).json({ error: 'Credenciales inválidas' });
+    }
+
+    // Verificar contraseña
+    const passwordValida = await bcrypt.compare(password, usuario.password);
+    if (!passwordValida) {
+      return res.status(401).json({ error: 'Credenciales inválidas' });
+    }
+
+    // Generar token
+    const token = jwt.sign(
+      { id: usuario.id, email: usuario.email, rol: usuario.rol },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      mensaje: 'Login exitoso',
+      token,
+      usuario: {
+        id: usuario.id,
+        nombre: usuario.nombre,
+        email: usuario.email,
+        rol: usuario.rol
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// ===================
+// RUTAS DE PRODUCTOS
+// ===================
+
+// Obtener todos los productos (público)
+app.get('/api/productos', (req, res) => {
+  try {
+    const { categoria, genero, precioMin, precioMax, buscar } = req.query;
+    let productosFiltrados = [...productos];
+
+    // Filtrar por categoría
+    if (categoria) {
+      productosFiltrados = productosFiltrados.filter(p => p.categoria === categoria);
+    }
+
+    // Filtrar por género
+    if (genero) {
+      productosFiltrados = productosFiltrados.filter(p => p.genero === genero);
+    }
+
+    // Filtrar por rango de precio
+    if (precioMin) {
+      productosFiltrados = productosFiltrados.filter(p => p.precio >= parseFloat(precioMin));
+    }
+    if (precioMax) {
+      productosFiltrados = productosFiltrados.filter(p => p.precio <= parseFloat(precioMax));
+    }
+
+    // Búsqueda por nombre
+    if (buscar) {
+      productosFiltrados = productosFiltrados.filter(p =>
+        p.nombre.toLowerCase().includes(buscar.toLowerCase()) ||
+        p.descripcion.toLowerCase().includes(buscar.toLowerCase())
+      );
+    }
+
+    res.json({
+      productos: productosFiltrados,
+      total: productosFiltrados.length
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Obtener producto por ID (público)
+app.get('/api/productos/:id', (req, res) => {
+  try {
+    const producto = productos.find(p => p.id === parseInt(req.params.id));
+    if (!producto) {
+      return res.status(404).json({ error: 'Producto no encontrado' });
+    }
+    res.json(producto);
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Crear producto (solo admin)
+app.post('/api/productos', authenticateToken, requireAdmin, (req, res) => {
+  try {
+    const { nombre, descripcion, precio, categoria, genero, tallas, colores, stock, imagen } = req.body;
+
+    // Validaciones
+    if (!nombre || !precio || !categoria || !genero || !stock) {
+      return res.status(400).json({ error: 'Campos requeridos faltantes' });
+    }
+
+    const nuevoProducto = {
+      id: productos.length + 1,
+      nombre,
+      descripcion,
+      precio: parseFloat(precio),
+      categoria,
+      genero,
+      tallas: tallas || [],
+      colores: colores || [],
+      stock: parseInt(stock),
+      imagen,
+      fechaCreacion: new Date().toISOString()
+    };
+
+    productos.push(nuevoProducto);
+
+    res.status(201).json({
+      mensaje: 'Producto creado exitosamente',
+      producto: nuevoProducto
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Actualizar producto (solo admin)
+app.put('/api/productos/:id', authenticateToken, requireAdmin, (req, res) => {
+  try {
+    const productoId = parseInt(req.params.id);
+    const productoIndex = productos.findIndex(p => p.id === productoId);
+
+    if (productoIndex === -1) {
+      return res.status(404).json({ error: 'Producto no encontrado' });
+    }
+
+    const { nombre, descripcion, precio, categoria, genero, tallas, colores, stock, imagen } = req.body;
+
+    productos[productoIndex] = {
+      ...productos[productoIndex],
+      ...(nombre && { nombre }),
+      ...(descripcion && { descripcion }),
+      ...(precio && { precio: parseFloat(precio) }),
+      ...(categoria && { categoria }),
+      ...(genero && { genero }),
+      ...(tallas && { tallas }),
+      ...(colores && { colores }),
+      ...(stock !== undefined && { stock: parseInt(stock) }),
+      ...(imagen && { imagen }),
+      fechaActualizacion: new Date().toISOString()
+    };
+
+    res.json({
+      mensaje: 'Producto actualizado exitosamente',
+      producto: productos[productoIndex]
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Eliminar producto (solo admin)
+app.delete('/api/productos/:id', authenticateToken, requireAdmin, (req, res) => {
+  try {
+    const productoId = parseInt(req.params.id);
+    const productoIndex = productos.findIndex(p => p.id === productoId);
+
+    if (productoIndex === -1) {
+      return res.status(404).json({ error: 'Producto no encontrado' });
+    }
+
+    productos.splice(productoIndex, 1);
+
+    res.json({ mensaje: 'Producto eliminado exitosamente' });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// ================
+// RUTAS DE CARRITO
+// ================
+
+// Agregar producto al carrito
+app.post('/api/carrito', authenticateToken, (req, res) => {
+  try {
+    const { productoId, cantidad, talla, color } = req.body;
+    const userId = req.user.id;
+
+    // Verificar que el producto existe
+    const producto = productos.find(p => p.id === productoId);
+    if (!producto) {
+      return res.status(404).json({ error: 'Producto no encontrado' });
+    }
+
+    // Verificar stock
+    if (producto.stock < cantidad) {
+      return res.status(400).json({ error: 'Stock insuficiente' });
+    }
+
+    // Buscar si ya existe en el carrito
+    const itemCarritoIndex = carrito.findIndex(
+      item => item.userId === userId && item.productoId === productoId && item.talla === talla && item.color === color
+    );
+
+    if (itemCarritoIndex > -1) {
+      // Actualizar cantidad
+      carrito[itemCarritoIndex].cantidad += cantidad;
+    } else {
+      // Agregar nuevo item
+      const nuevoItem = {
+        id: carrito.length + 1,
+        userId,
+        productoId,
+        cantidad,
+        talla,
+        color,
+        fechaAgregado: new Date().toISOString()
+      };
+      carrito.push(nuevoItem);
+    }
+
+    res.json({ mensaje: 'Producto agregado al carrito exitosamente' });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Obtener carrito del usuario
+app.get('/api/carrito', authenticateToken, (req, res) => {
+  try {
+    const userId = req.user.id;
+    const carritoUsuario = carrito.filter(item => item.userId === userId);
+
+    // Enriquecer con datos del producto
+    const carritoCompleto = carritoUsuario.map(item => {
+      const producto = productos.find(p => p.id === item.productoId);
+      return {
+        ...item,
+        producto
+      };
+    });
+
+    const total = carritoCompleto.reduce((sum, item) => sum + (item.producto.precio * item.cantidad), 0);
+
+    res.json({
+      items: carritoCompleto,
+      total
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Actualizar cantidad en carrito
+app.put('/api/carrito/:id', authenticateToken, (req, res) => {
+  try {
+    const itemId = parseInt(req.params.id);
+    const { cantidad } = req.body;
+    const userId = req.user.id;
+
+    const itemIndex = carrito.findIndex(item => item.id === itemId && item.userId === userId);
+
+    if (itemIndex === -1) {
+      return res.status(404).json({ error: 'Item no encontrado en el carrito' });
+    }
+
+    carrito[itemIndex].cantidad = cantidad;
+
+    res.json({ mensaje: 'Cantidad actualizada exitosamente' });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Eliminar item del carrito
+app.delete('/api/carrito/:id', authenticateToken, (req, res) => {
+  try {
+    const itemId = parseInt(req.params.id);
+    const userId = req.user.id;
+
+    const itemIndex = carrito.findIndex(item => item.id === itemId && item.userId === userId);
+
+    if (itemIndex === -1) {
+      return res.status(404).json({ error: 'Item no encontrado en el carrito' });
+    }
+
+    carrito.splice(itemIndex, 1);
+
+    res.json({ mensaje: 'Item eliminado del carrito exitosamente' });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// ================
+// RUTAS DE PEDIDOS
+// ================
+
+// Crear pedido
+app.post('/api/pedidos', authenticateToken, (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { direccionEnvio, metodoPago } = req.body;
+
+    // Obtener items del carrito
+    const carritoUsuario = carrito.filter(item => item.userId === userId);
+
+    if (carritoUsuario.length === 0) {
+      return res.status(400).json({ error: 'El carrito está vacío' });
+    }
+
+    // Verificar stock
+    for (const item of carritoUsuario) {
+      const producto = productos.find(p => p.id === item.productoId);
+      if (producto.stock < item.cantidad) {
+        return res.status(400).json({ error: `Stock insuficiente para ${producto.nombre}` });
+      }
+    }
+
+    // Crear pedido
+    const nuevoPedido = {
+      id: pedidos.length + 1,
+      userId,
+      items: carritoUsuario.map(item => {
+        const producto = productos.find(p => p.id === item.productoId);
+        return {
+          productoId: item.productoId,
+          nombre: producto.nombre,
+          precio: producto.precio,
+          cantidad: item.cantidad,
+          talla: item.talla,
+          color: item.color
+        };
+      }),
+      total: carritoUsuario.reduce((sum, item) => {
+        const producto = productos.find(p => p.id === item.productoId);
+        return sum + (producto.precio * item.cantidad);
+      }, 0),
+      estado: 'pendiente',
+      direccionEnvio,
+      metodoPago,
+      fechaPedido: new Date().toISOString()
+    };
+
+    pedidos.push(nuevoPedido);
+
+    // Actualizar stock
+    carritoUsuario.forEach(item => {
+      const productoIndex = productos.findIndex(p => p.id === item.productoId);
+      productos[productoIndex].stock -= item.cantidad;
+    });
+
+    // Limpiar carrito
+    carrito = carrito.filter(item => item.userId !== userId);
+
+    res.status(201).json({
+      mensaje: 'Pedido creado exitosamente',
+      pedido: nuevoPedido
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Obtener pedidos del usuario
+app.get('/api/pedidos', authenticateToken, (req, res) => {
+  try {
+    const userId = req.user.id;
+    const pedidosUsuario = pedidos.filter(p => p.userId === userId);
+
+    res.json({ pedidos: pedidosUsuario });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Obtener todos los pedidos (solo admin)
+app.get('/api/admin/pedidos', authenticateToken, requireAdmin, (req, res) => {
+  try {
+    res.json({ pedidos });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Actualizar estado del pedido (solo admin)
+app.put('/api/admin/pedidos/:id', authenticateToken, requireAdmin, (req, res) => {
+  try {
+    const pedidoId = parseInt(req.params.id);
+    const { estado } = req.body;
+
+    const pedidoIndex = pedidos.findIndex(p => p.id === pedidoId);
+
+    if (pedidoIndex === -1) {
+      return res.status(404).json({ error: 'Pedido no encontrado' });
+    }
+
+    pedidos[pedidoIndex].estado = estado;
+    pedidos[pedidoIndex].fechaActualizacion = new Date().toISOString();
+
+    res.json({
+      mensaje: 'Estado del pedido actualizado exitosamente',
+      pedido: pedidos[pedidoIndex]
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// =================
+// RUTAS DE USUARIOS
+// =================
+
+// Obtener perfil del usuario
+app.get('/api/usuario/perfil', authenticateToken, (req, res) => {
+  try {
+    const userId = req.user.id;
+    const usuario = usuarios.find(u => u.id === userId);
+
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    res.json({
+      id: usuario.id,
+      nombre: usuario.nombre,
+      email: usuario.email,
+      rol: usuario.rol,
+      fechaRegistro: usuario.fechaRegistro
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// ====================
+// RUTAS DE INFORMACIÓN
+// ====================
+
+// Información general de la API
+app.get('/api', (req, res) => {
+  res.json({
+    nombre: 'API Tienda de Ropa Narváez',
+    version: '1.0.0',
+    descripcion: 'API RESTful para la gestión de una tienda de ropa',
+    endpoints: {
+      auth: [
+        'POST /api/auth/registro',
+        'POST /api/auth/login'
+      ],
+      productos: [
+        'GET /api/productos',
+        'GET /api/productos/:id',
+        'POST /api/productos (admin)',
+        'PUT /api/productos/:id (admin)',
+        'DELETE /api/productos/:id (admin)'
+      ],
+      carrito: [
+        'GET /api/carrito',
+        'POST /api/carrito',
+        'PUT /api/carrito/:id',
+        'DELETE /api/carrito/:id'
+      ],
+      pedidos: [
+        'GET /api/pedidos',
+        'POST /api/pedidos',
+        'GET /api/admin/pedidos (admin)',
+        'PUT /api/admin/pedidos/:id (admin)'
+      ],
+      usuario: [
+        'GET /api/usuario/perfil'
+      ]
+    }
+  });
+});
+
+// Manejo de rutas no encontradas
+app.use('*', (req, res) => {
+  res.status(404).json({ error: 'Endpoint no encontrado' });
+});
+
+// Manejo de errores global
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Error interno del servidor' });
+});
+
+// Iniciar servidor
+app.listen(PORT, () => {
+  console.log(`🚀 API Tienda Narváez ejecutándose en http://localhost:${PORT}`);
+  console.log(`📚 Documentación disponible en http://localhost:${PORT}/api`);
+});
+
+module.exports = app;

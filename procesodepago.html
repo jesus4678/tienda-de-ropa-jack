@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tienda de Ropa narvaez</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .productos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 2rem;
+        }
+
+        .producto {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .producto img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            margin-bottom: 1rem;
+        }
+
+        .producto button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .producto button:hover {
+            background-color: #45a049;
+        }
+
+        #carrito {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        #carrito-items {
+            margin: 1rem 0;
+        }
+
+        .carrito-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        #proceso-pago {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .btn-pagar {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.1rem;
+        }
+
+        .btn-pagar:hover {
+            background-color: #45a049;
+        }
+
+        .oculto {
+            display: none;
+        }
+
+        .mensaje {
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+            border: 1px solid #d6e9c6;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Tienda de Ropa narvaez</h1>
+    </header>
+
+    <div class="container">
+        <div class="productos-grid">
+            <div class="producto">
+                <img src="camisa basica.jfif">
+                <img src="/api/placeholder/250/200" alt="Camiseta">
+                <h3>Camiseta Básica</h3>
+                <p>$199.99</p>
+                <button onclick="agregarAlCarrito('Camiseta Básica', 199.99)">Agregar al carrito</button>
+            </div>
+            <div class="producto">
+                <img src="pantalon jean.jfif">
+                <img src="/api/placeholder/250/200" alt="Pantalón">
+                <h3>Pantalón Jeans</h3>
+                <p>$499.99</p>
+                <button onclick="agregarAlCarrito('Pantalón Jeans', 499.99)">Agregar al carrito</button>
+            </div>
+            <div class="producto">
+                <img src="vestido casual.jfif">
+                <img src="/api/placeholder/250/200" alt="Vestido">
+                <h3>Vestido Casual</h3>
+                <p>$799.99</p>
+                <button onclick="agregarAlCarrito('Vestido Casual', 799.99)">Agregar al carrito</button>
+            </div>
+            <div class="producto">
+                <img src="chamarra.jfif">
+                <img src="/api/placeholder/250/200" alt="Chamarra">
+                <h3>Chamarra</h3>
+                <p>$899.99</p>
+                <button onclick="agregarAlCarrito('Chamarra', 899.99)">Agregar al carrito</button>
+            </div>
+        </div>
+
+        <div id="carrito">
+            <h2>Carrito de Compras</h2>
+            <div id="carrito-items"></div>
+            <div id="carrito-total">
+                <h3>Total: $0.00</h3>
+            </div>
+            <button class="btn-pagar" onclick="mostrarPago()">Proceder al pago</button>
+        </div>
+
+        <div id="proceso-pago" class="oculto">
+            <h2>Proceso de Pago</h2>
+            <form id="forma-pago" onsubmit="procesarPago(event)">
+                <div class="form-group">
+                    <label for="nombre">Nombre completo:</label>
+                    <input type="text" id="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Correo electrónico:</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="tarjeta">Número de tarjeta:</label>
+                    <input type="text" id="tarjeta" required pattern="\d{16}" placeholder="1234567890123456">
+                </div>
+                <div class="form-group">
+                    <label for="expiracion">Fecha de expiración:</label>
+                    <input type="text" id="expiracion" required pattern="\d{2}/\d{2}" placeholder="MM/YY">
+                </div>
+                <div class="form-group">
+                    <label for="cvv">CVV:</label>
+                    <input type="text" id="cvv" required pattern="\d{3}" placeholder="123">
+                </div>
+                <button type="submit" class="btn-pagar">Realizar Pago</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let carrito = [];
+        let total = 0;
+
+        function actualizarCarrito() {
+            const carritoItems = document.getElementById('carrito-items');
+            const carritoTotal = document.getElementById('carrito-total');
+            
+            carritoItems.innerHTML = '';
+            carrito.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'carrito-item';
+                itemElement.innerHTML = `
+                    <span>${item.nombre}</span>
+                    <span>$${item.precio.toFixed(2)}</span>
+                    <button onclick="eliminarDelCarrito('${item.nombre}')">Eliminar</button>
+                `;
+                carritoItems.appendChild(itemElement);
+            });
+
+            total = carrito.reduce((sum, item) => sum + item.precio, 0);
+            carritoTotal.innerHTML = `<h3>Total: $${total.toFixed(2)}</h3>`;
+        }
+
+        function agregarAlCarrito(nombre, precio) {
+            carrito.push({ nombre, precio });
+            actualizarCarrito();
+            mostrarMensaje('Producto agregado al carrito', 'success');
+        }
+
+        function eliminarDelCarrito(nombre) {
+            const index = carrito.findIndex(item => item.nombre === nombre);
+            if (index !== -1) {
+                carrito.splice(index, 1);
+                actualizarCarrito();
+                mostrarMensaje('Producto eliminado del carrito', 'success');
+            }
+        }
+
+        function mostrarPago() {
+            if (carrito.length === 0) {
+                mostrarMensaje('El carrito está vacío', 'error');
+                return;
+            }
+            document.getElementById('proceso-pago').classList.remove('oculto');
+        }
+
+        function procesarPago(event) {
+            event.preventDefault();
+            
+            // Simulación de procesamiento de pago
+            const formData = new FormData(event.target);
+            document.getElementById('proceso-pago').classList.add('oculto');
+            carrito = [];
+            actualizarCarrito();
+            mostrarMensaje('¡Pago realizado con éxito! Gracias por su compra.', 'success');
+        }
+
+        function mostrarMensaje(texto, tipo) {
+            const mensajeDiv = document.createElement('div');
+            mensajeDiv.className = `mensaje ${tipo}`;
+            mensajeDiv.textContent = texto;
+            
+            document.querySelector('.container').insertBefore(mensajeDiv, document.querySelector('.productos-grid'));
+            
+            setTimeout(() => {
+                mensajeDiv.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
